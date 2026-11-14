@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Task, Assignee, TaskStatus, TaskFormData, COLUMNS } from './types/task';
+import { Task, TaskStatus, TaskFormData, COLUMNS } from './types/task';
 import { taskService } from './services/taskService';
 import { isTaskOverdue } from './utils/dateUtils';
 import { Navbar } from './components/Navbar';
@@ -9,17 +9,16 @@ import { TaskModal } from './components/TaskModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
 import { MobileColumnTabs } from './components/MobileColumnTabs';
 import { ToastContainer, ToastMessage } from './components/Toast';
-import { Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
+import { Sparkles, AlertCircle, RefreshCw, PlusCircle } from 'lucide-react';
 
 export function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [assignees, setAssignees] = useState<Assignee[]>([]);
   const [loading, setLoading] = useState(true);
   const [backendConnected, setBackendConnected] = useState<boolean | null>(null);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAssigneeId, setSelectedAssigneeId] = useState('all');
+  const [selectedAssignee, setSelectedAssignee] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'todo' | 'in_progress' | 'done'>('all');
   const [onlyOverdue, setOnlyOverdue] = useState(false);
 
@@ -90,16 +89,11 @@ export function App() {
         const isConnected = await taskService.checkBackend();
         setBackendConnected(isConnected);
 
-        const [loadedAssignees, loadedTasks] = await Promise.all([
-          taskService.getAssignees(),
-          taskService.getTasks(),
-        ]);
-
-        setAssignees(loadedAssignees);
+        const loadedTasks = await taskService.getTasks();
         setTasks(loadedTasks);
       } catch (err) {
         console.error('Initialization error:', err);
-        addToast('Failed to load initial tasks', 'error');
+        addToast('Failed to load tasks', 'error');
       } finally {
         setLoading(false);
       }
@@ -110,7 +104,6 @@ export function App() {
   // Keyboard shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input or textarea
       const target = e.target as HTMLElement;
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
 
@@ -128,6 +121,17 @@ export function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Dynamically extract all unique assignees from existing tasks
+  const assigneesList = useMemo(() => {
+    const names = new Set<string>();
+    tasks.forEach((t) => {
+      if (t.assignee && t.assignee.trim()) {
+        names.add(t.assignee.trim());
+      }
+    });
+    return Array.from(names).sort();
+  }, [tasks]);
+
   // Filtered tasks computation
   const filteredTasks = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -139,7 +143,7 @@ export function App() {
       }
 
       // Filter by assignee
-      if (selectedAssigneeId !== 'all' && task.assigneeId !== selectedAssigneeId) {
+      if (selectedAssignee !== 'all' && task.assignee !== selectedAssignee) {
         return false;
       }
 
@@ -155,7 +159,7 @@ export function App() {
 
       return true;
     });
-  }, [tasks, searchQuery, selectedAssigneeId, onlyOverdue, statusFilter]);
+  }, [tasks, searchQuery, selectedAssignee, onlyOverdue, statusFilter]);
 
   // Group tasks by status
   const tasksByColumn = useMemo(() => {
@@ -228,32 +232,15 @@ export function App() {
     }
   };
 
-  const handleResetDemoData = async () => {
-    if (window.confirm('Reset all tasks to the sample demo state?')) {
-      try {
-        const resetTasks = await taskService.resetToDemoData();
-        setTasks(resetTasks);
-        setSearchQuery('');
-        setSelectedAssigneeId('all');
-        setStatusFilter('all');
-        setOnlyOverdue(false);
-        addToast('Board reset to demo tasks!', 'success');
-      } catch (err) {
-        console.error('Reset error:', err);
-        addToast('Failed to reset demo data', 'error');
-      }
-    }
-  };
-
   const hasActiveFilters =
     Boolean(searchQuery.trim()) ||
-    selectedAssigneeId !== 'all' ||
+    selectedAssignee !== 'all' ||
     statusFilter !== 'all' ||
     onlyOverdue;
 
   const handleClearFilters = () => {
     setSearchQuery('');
-    setSelectedAssigneeId('all');
+    setSelectedAssignee('all');
     setStatusFilter('all');
     setOnlyOverdue(false);
   };
@@ -267,9 +254,9 @@ export function App() {
       <Navbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        selectedAssigneeId={selectedAssigneeId}
-        onAssigneeChange={setSelectedAssigneeId}
-        assignees={assignees}
+        selectedAssignee={selectedAssignee}
+        onAssigneeChange={setSelectedAssignee}
+        assignees={assigneesList}
         onOpenNewTaskModal={() =>
           setTaskModalState({
             isOpen: true,
@@ -278,7 +265,6 @@ export function App() {
             defaultStatus: 'todo',
           })
         }
-        onResetDemoData={handleResetDemoData}
         darkMode={darkMode}
         onToggleDarkMode={() => setDarkMode(!darkMode)}
         backendConnected={backendConnected}
@@ -291,7 +277,6 @@ export function App() {
         {/* Quick Stats Bar & Clickable Overdue Filter */}
         <StatsBar
           tasks={tasks}
-          assignees={assignees}
           onlyOverdue={onlyOverdue}
           onToggleOverdue={() => setOnlyOverdue(!onlyOverdue)}
           statusFilter={statusFilter}
@@ -311,9 +296,9 @@ export function App() {
                   Title: "{searchQuery}"
                 </span>
               )}
-              {selectedAssigneeId !== 'all' && (
+              {selectedAssignee !== 'all' && (
                 <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 font-medium">
-                  Assignee: {assignees.find((a) => a.id === selectedAssigneeId)?.name}
+                  Assignee: {selectedAssignee}
                 </span>
               )}
               {statusFilter !== 'all' && (
@@ -353,11 +338,41 @@ export function App() {
             <RefreshCw className="w-8 h-8 animate-spin text-indigo-500 mb-3" />
             <p className="text-sm font-medium">Loading your team board...</p>
           </div>
-        ) : (
-          /* Three Columns Board Grid */
+        ) : tasks.length === 0 ? (
+          /* Empty Board Welcome Banner */
+          <div className="flex flex-col items-center justify-center text-center p-12 bg-white/60 dark:bg-slate-900/40 border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl mb-8">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-4">
+              <PlusCircle className="w-7 h-7" />
+            </div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1.5">
+              Your board is ready!
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mb-5 leading-relaxed">
+              No tasks yet. Create your first task to start organizing work across To do, In progress, and Done.
+            </p>
+            <button
+              onClick={() =>
+                setTaskModalState({
+                  isOpen: true,
+                  mode: 'create',
+                  initialTask: null,
+                  defaultStatus: 'todo',
+                })
+              }
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-600/25 transition-all"
+            >
+              <span>+ Create First Task</span>
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-indigo-700/80 rounded border border-indigo-400/30">
+                N
+              </kbd>
+            </button>
+          </div>
+        ) : null}
+
+        {/* Three Columns Board Grid */}
+        {!loading && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {COLUMNS.map((column) => {
-              // On mobile, if a single tab is selected and it's not this column, hide it
               if (mobileActiveTab !== 'all' && mobileActiveTab !== column.id) {
                 return null;
               }
@@ -367,7 +382,6 @@ export function App() {
                   key={column.id}
                   column={column}
                   tasks={tasksByColumn[column.id]}
-                  assignees={assignees}
                   searchQuery={searchQuery}
                   onAddTaskToColumn={(status) =>
                     setTaskModalState({
@@ -405,7 +419,7 @@ export function App() {
         mode={taskModalState.mode}
         initialTask={taskModalState.initialTask}
         defaultStatus={taskModalState.defaultStatus}
-        assignees={assignees}
+        existingAssignees={assigneesList}
         onClose={() => setTaskModalState((prev) => ({ ...prev, isOpen: false }))}
         onSubmit={handleCreateOrUpdateTask}
       />

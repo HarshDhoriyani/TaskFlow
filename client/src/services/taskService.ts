@@ -1,12 +1,20 @@
-import { Assignee, Task, TaskFormData, TaskStatus } from '../types/task';
-import { INITIAL_ASSIGNEES, generateInitialTasks } from '../data/initialData';
+import { Task, TaskFormData, TaskStatus } from '../types/task';
 
-const TASKS_STORAGE_KEY = 'taskflow_tasks_v1';
-const ASSIGNEES_STORAGE_KEY = 'taskflow_assignees_v1';
+const TASKS_STORAGE_KEY = 'taskflow_tasks_v2';
 const API_BASE = '/api';
 
 class TaskService {
   private isBackendAvailable: boolean | null = null;
+
+  constructor() {
+    // Clean up any legacy dummy cache if present
+    try {
+      localStorage.removeItem('taskflow_tasks_v1');
+      localStorage.removeItem('taskflow_assignees_v1');
+    } catch {
+      // Ignore if localStorage is not accessible
+    }
+  }
 
   /**
    * Probes backend health to see if Express server is reachable
@@ -24,35 +32,6 @@ class TaskService {
 
   getBackendStatus(): boolean | null {
     return this.isBackendAvailable;
-  }
-
-  // --- Assignees ---
-
-  async getAssignees(): Promise<Assignee[]> {
-    if (this.isBackendAvailable) {
-      try {
-        const res = await fetch(`${API_BASE}/assignees`);
-        if (res.ok) {
-          const data = await res.json();
-          localStorage.setItem(ASSIGNEES_STORAGE_KEY, JSON.stringify(data));
-          return data;
-        }
-      } catch (err) {
-        console.warn('Backend assignees fetch failed, using local storage fallback', err);
-      }
-    }
-
-    const cached = localStorage.getItem(ASSIGNEES_STORAGE_KEY);
-    if (cached) {
-      try {
-        return JSON.parse(cached);
-      } catch (e) {
-        console.error('Failed to parse cached assignees', e);
-      }
-    }
-
-    localStorage.setItem(ASSIGNEES_STORAGE_KEY, JSON.stringify(INITIAL_ASSIGNEES));
-    return INITIAL_ASSIGNEES;
   }
 
   // --- Tasks ---
@@ -80,9 +59,9 @@ class TaskService {
       }
     }
 
-    const initial = generateInitialTasks();
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(initial));
-    return initial;
+    const empty: Task[] = [];
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(empty));
+    return empty;
   }
 
   async createTask(formData: TaskFormData): Promise<Task> {
@@ -90,7 +69,7 @@ class TaskService {
       id: 'task-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
       title: formData.title.trim(),
       description: formData.description.trim(),
-      assigneeId: formData.assigneeId,
+      assignee: formData.assignee.trim(),
       status: formData.status,
       dueDate: formData.dueDate,
       createdAt: new Date().toISOString(),
@@ -172,19 +151,15 @@ class TaskService {
     localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(filtered));
   }
 
-  async resetToDemoData(): Promise<Task[]> {
-    const demoTasks = generateInitialTasks();
+  async clearAllTasks(): Promise<void> {
     if (this.isBackendAvailable) {
       try {
-        await fetch(`${API_BASE}/reset`, { method: 'POST' });
+        await fetch(`${API_BASE}/tasks/clear`, { method: 'POST' });
       } catch (err) {
-        console.warn('Backend reset failed', err);
+        console.warn('Backend clear failed', err);
       }
     }
-
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(demoTasks));
-    localStorage.setItem(ASSIGNEES_STORAGE_KEY, JSON.stringify(INITIAL_ASSIGNEES));
-    return demoTasks;
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify([]));
   }
 
   private saveTaskLocally(task: Task) {

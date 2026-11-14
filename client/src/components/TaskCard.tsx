@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
-import { Task, Assignee, TaskStatus } from '../types/task';
-import { formatFriendlyDate, getDueDateStatus, isTaskOverdue } from '../utils/dateUtils';
+import { Task, TaskStatus } from '../types/task';
+import {
+  formatFriendlyDate,
+  getDueDateStatus,
+  isTaskOverdue,
+  getInitials,
+  getAvatarColor,
+} from '../utils/dateUtils';
 import {
   Calendar,
   MoreVertical,
@@ -14,7 +20,6 @@ import {
 
 interface TaskCardProps {
   task: Task;
-  assignee?: Assignee;
   searchQuery: string;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
@@ -24,7 +29,6 @@ interface TaskCardProps {
 
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
-  assignee,
   searchQuery,
   onEdit,
   onDelete,
@@ -40,7 +44,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     e.dataTransfer.setData('text/plain', task.id);
     e.dataTransfer.setData('application/json', JSON.stringify(task));
     e.dataTransfer.effectAllowed = 'move';
-    // Add dragging class
     e.currentTarget.classList.add('task-card-dragging');
   };
 
@@ -48,7 +51,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     e.currentTarget.classList.remove('task-card-dragging');
   };
 
-  // Target columns for quick move
   const getMoveTargets = (): { label: string; status: TaskStatus }[] => {
     switch (task.status) {
       case 'todo':
@@ -84,6 +86,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       )
     );
   };
+
+  const initials = getInitials(task.assignee);
+  const avatarBg = getAvatarColor(task.assignee);
 
   return (
     <div
@@ -216,18 +221,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </div>
 
         {/* Assignee Avatar */}
-        {assignee ? (
+        {task.assignee ? (
           <div
             className="flex items-center gap-1.5"
-            title={`${assignee.name} • ${assignee.role}`}
+            title={`Assigned to: ${task.assignee}`}
           >
             <div
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-sm ${assignee.avatarColor}`}
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-sm ${avatarBg}`}
             >
-              {assignee.initials}
+              {initials}
             </div>
-            <span className="text-xs font-medium text-slate-600 dark:text-slate-400 max-w-[80px] truncate hidden sm:inline">
-              {assignee.name.split(' ')[0]}
+            <span className="text-xs font-medium text-slate-700 dark:text-slate-300 max-w-[100px] truncate">
+              {task.assignee}
             </span>
           </div>
         ) : (
@@ -235,7 +240,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         )}
       </div>
 
-      {/* Mobile/Accessibility Quick Move Bar - visible on mobile or card hover */}
+      {/* Mobile/Accessibility Quick Move Bar */}
       <div className="mt-3 pt-2 border-t border-dashed border-slate-200 dark:border-slate-800/60 flex items-center justify-between gap-1 sm:hidden group-hover:flex">
         <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1">
           <Clock className="w-2.5 h-2.5" /> Move:

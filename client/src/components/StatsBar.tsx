@@ -1,11 +1,10 @@
 import React from 'react';
-import { Task, Assignee } from '../types/task';
+import { Task } from '../types/task';
 import { isTaskOverdue } from '../utils/dateUtils';
 import { CheckCircle2, Clock, AlertTriangle, Layers } from 'lucide-react';
 
 interface StatsBarProps {
   tasks: Task[];
-  assignees: Assignee[];
   onlyOverdue: boolean;
   onToggleOverdue: () => void;
   statusFilter: string;
@@ -100,7 +99,7 @@ export const StatsBar: React.FC<StatsBarProps> = ({
         </div>
       </button>
 
-      {/* Overdue Alert Card - Clickable filter! */}
+      {/* Overdue Alert Card */}
       <button
         onClick={onToggleOverdue}
         className={`col-span-2 sm:col-span-1 flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left ${

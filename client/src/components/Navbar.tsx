@@ -1,9 +1,7 @@
 import React from 'react';
-import { Assignee } from '../types/task';
 import {
   Search,
   Plus,
-  RotateCcw,
   Sun,
   Moon,
   Kanban,
@@ -16,11 +14,10 @@ import {
 interface NavbarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  selectedAssigneeId: string;
-  onAssigneeChange: (assigneeId: string) => void;
-  assignees: Assignee[];
+  selectedAssignee: string;
+  onAssigneeChange: (assignee: string) => void;
+  assignees: string[];
   onOpenNewTaskModal: () => void;
-  onResetDemoData: () => void;
   darkMode: boolean;
   onToggleDarkMode: () => void;
   backendConnected: boolean | null;
@@ -31,11 +28,10 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   searchQuery,
   onSearchChange,
-  selectedAssigneeId,
+  selectedAssignee,
   onAssigneeChange,
   assignees,
   onOpenNewTaskModal,
-  onResetDemoData,
   darkMode,
   onToggleDarkMode,
   backendConnected,
@@ -115,15 +111,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Filter className="w-3.5 h-3.5" />
               </div>
               <select
-                value={selectedAssigneeId}
+                value={selectedAssignee}
                 onChange={(e) => onAssigneeChange(e.target.value)}
                 aria-label="Filter tasks by assignee"
                 className="w-full pl-8 pr-8 py-2 text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all appearance-none cursor-pointer"
               >
                 <option value="all">All Assignees</option>
-                {assignees.map((assignee) => (
-                  <option key={assignee.id} value={assignee.id}>
-                    {assignee.name} ({assignee.role})
+                {assignees.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
                   </option>
                 ))}
               </select>
@@ -174,16 +170,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </>
               )}
             </div>
-
-            {/* Reset Data Button */}
-            <button
-              onClick={onResetDemoData}
-              title="Reset tasks to initial demo state"
-              className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset Data</span>
-            </button>
 
             {/* Dark Mode Toggle */}
             <button

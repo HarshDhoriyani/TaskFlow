@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Task, Assignee, TaskStatus, TaskFormData } from '../types/task';
+import { Task, TaskStatus, TaskFormData } from '../types/task';
 import { getTodayString } from '../utils/dateUtils';
 import { X, Calendar, User, AlignLeft, Tag, Clock } from 'lucide-react';
 
@@ -8,7 +8,7 @@ interface TaskModalProps {
   mode: 'create' | 'edit';
   initialTask?: Task | null;
   defaultStatus?: TaskStatus;
-  assignees: Assignee[];
+  existingAssignees: string[];
   onClose: () => void;
   onSubmit: (formData: TaskFormData) => void;
 }
@@ -18,13 +18,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   mode,
   initialTask,
   defaultStatus = 'todo',
-  assignees,
+  existingAssignees,
   onClose,
   onSubmit,
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [assigneeId, setAssigneeId] = useState('');
+  const [assignee, setAssignee] = useState('');
   const [status, setStatus] = useState<TaskStatus>(defaultStatus);
   const [dueDate, setDueDate] = useState(getTodayString());
   const [error, setError] = useState<string | null>(null);
@@ -36,21 +36,20 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       if (mode === 'edit' && initialTask) {
         setTitle(initialTask.title);
         setDescription(initialTask.description || '');
-        setAssigneeId(initialTask.assigneeId);
+        setAssignee(initialTask.assignee || '');
         setStatus(initialTask.status);
         setDueDate(initialTask.dueDate);
       } else {
         setTitle('');
         setDescription('');
-        setAssigneeId(assignees[0]?.id || '');
+        setAssignee('');
         setStatus(defaultStatus);
         setDueDate(getTodayString());
       }
       setError(null);
-      // Focus title after render
       setTimeout(() => titleInputRef.current?.focus(), 50);
     }
-  }, [isOpen, mode, initialTask, defaultStatus, assignees]);
+  }, [isOpen, mode, initialTask, defaultStatus]);
 
   // Handle ESC key to close
   useEffect(() => {
@@ -65,7 +64,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, title, description, assigneeId, status, dueDate]);
+  }, [isOpen, title, description, assignee, status, dueDate]);
 
   if (!isOpen) return null;
 
@@ -76,8 +75,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       titleInputRef.current?.focus();
       return;
     }
-    if (!assigneeId) {
-      setError('Please select an assignee');
+    if (!assignee.trim()) {
+      setError('Please provide an assignee name');
       return;
     }
     if (!dueDate) {
@@ -88,7 +87,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     onSubmit({
       title: title.trim(),
       description: description.trim(),
-      assigneeId,
+      assignee: assignee.trim(),
       status,
       dueDate,
     });
@@ -151,7 +150,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             <input
               ref={titleInputRef}
               type="text"
-              placeholder="e.g. Audit and upgrade OAuth2 flow"
+              placeholder="e.g. Implement user authentication"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
@@ -181,17 +180,36 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <User className="w-3.5 h-3.5 text-slate-400" />
                 <span>Assignee <span className="text-rose-500">*</span></span>
               </label>
-              <select
-                value={assigneeId}
-                onChange={(e) => setAssigneeId(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
-              >
-                {assignees.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} ({a.role})
-                  </option>
+              <input
+                type="text"
+                list="assignees-suggestions"
+                placeholder="e.g. Alex Rivera"
+                value={assignee}
+                onChange={(e) => setAssignee(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              />
+              <datalist id="assignees-suggestions">
+                {existingAssignees.map((name) => (
+                  <option key={name} value={name} />
                 ))}
-              </select>
+              </datalist>
+
+              {/* Quick suggestion chips */}
+              {existingAssignees.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                  <span className="text-[10px] text-slate-400">Recent:</span>
+                  {existingAssignees.slice(0, 4).map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => setAssignee(name)}
+                      className="px-1.5 py-0.5 text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded transition-colors"
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Column / Status */}

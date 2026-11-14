@@ -34,7 +34,7 @@ Built with **React**, **TypeScript**, **Tailwind CSS**, and an optional **Node.j
 ### 1. Dual-Persistence Architecture (Offline-First Resilient)
 - **Primary:** RESTful API powered by Node.js & Express (`/api/tasks`, `/api/assignees`), persisting to disk (`server/data/tasks.json`).
 - **Fallback:** Automatic browser `localStorage` synchronization. If the backend is unreachable (or when hosted statically on Vercel/Netlify), the app seamlessly switches to `localStorage` without errors or degradation.
-- **Demo Reset:** Includes a "Reset Data" button that seeds realistic team tasks (including past-due, due today, and future tasks) so evaluators can test with 1 click anytime.
+- **Clean Slate:** No hardcoded dummy tasks or mock assignees. Team members and tasks are created on-the-fly dynamically with automatic avatar color generation and initials.
 
 ### 2. Mobile-First & Touch-Friendly Interactions
 - While desktop users enjoy intuitive drag-and-drop between columns, mobile touchscreens often struggle with drag interactions.

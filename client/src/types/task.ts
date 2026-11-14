@@ -1,19 +1,10 @@
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
 
-export interface Assignee {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  initials: string;
-  avatarColor: string;
-}
-
 export interface Task {
   id: string;
   title: string;
   description: string;
-  assigneeId: string;
+  assignee: string; // Assignee name (e.g. "Harsh", "Priya")
   status: TaskStatus;
   dueDate: string; // Format: YYYY-MM-DD
   createdAt: string;
@@ -23,18 +14,9 @@ export interface Task {
 export interface TaskFormData {
   title: string;
   description: string;
-  assigneeId: string;
+  assignee: string;
   status: TaskStatus;
   dueDate: string;
-}
-
-export interface TaskFilterState {
-  searchQuery: string;
-  assigneeId: string; // 'all' or specific id
-  statusFilter: TaskStatus | 'all';
-  onlyOverdue: boolean;
-  sortBy: 'dueDate' | 'title' | 'createdAt';
-  sortOrder: 'asc' | 'desc';
 }
 
 export interface ColumnDefinition {

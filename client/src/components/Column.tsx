@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { ColumnDefinition, Task, Assignee, TaskStatus } from '../types/task';
+import { ColumnDefinition, Task, TaskStatus } from '../types/task';
 import { TaskCard } from './TaskCard';
 import { Plus, Inbox, Clock, CheckCircle2, Circle } from 'lucide-react';
 
 interface ColumnProps {
   column: ColumnDefinition;
   tasks: Task[];
-  assignees: Assignee[];
   searchQuery: string;
   onAddTaskToColumn: (status: TaskStatus) => void;
   onEditTask: (task: Task) => void;
@@ -17,7 +16,6 @@ interface ColumnProps {
 export const Column: React.FC<ColumnProps> = ({
   column,
   tasks,
-  assignees,
   searchQuery,
   onAddTaskToColumn,
   onEditTask,
@@ -25,12 +23,6 @@ export const Column: React.FC<ColumnProps> = ({
   onMoveTask,
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
-
-  const assigneeMap = React.useMemo(() => {
-    const map = new Map<string, Assignee>();
-    assignees.forEach((a) => map.set(a.id, a));
-    return map;
-  }, [assignees]);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -43,7 +35,6 @@ export const Column: React.FC<ColumnProps> = ({
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    // Only turn off if leaving column container
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsDragOver(false);
     }
@@ -134,7 +125,6 @@ export const Column: React.FC<ColumnProps> = ({
             <TaskCard
               key={task.id}
               task={task}
-              assignee={assigneeMap.get(task.assigneeId)}
               searchQuery={searchQuery}
               onEdit={onEditTask}
               onDelete={onDeleteTask}
