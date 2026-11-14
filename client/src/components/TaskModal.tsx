@@ -31,6 +31,17 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   const titleInputRef = useRef<HTMLInputElement>(null);
 
+  // Prevent background page scrolling when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen) {
       if (mode === 'edit' && initialTask) {
@@ -105,14 +116,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto overscroll-contain animate-in fade-in duration-150"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
+        className="w-full max-w-lg my-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-150"
       >
-        {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40">
+        {/* Pinned Modal Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
               <Tag className="w-4 h-4" />
@@ -134,144 +145,146 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           </button>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-medium">
-              {error}
-            </div>
-          )}
+        {/* Scrollable Form Body */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="p-6 space-y-4 overflow-y-auto overscroll-contain flex-1">
+            {error && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs rounded-xl font-medium">
+                {error}
+              </div>
+            )}
 
-          {/* Title */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-              Task Title <span className="text-rose-500">*</span>
-            </label>
-            <input
-              ref={titleInputRef}
-              type="text"
-              placeholder="e.g. Implement user authentication"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
-            />
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-              <AlignLeft className="w-3.5 h-3.5 text-slate-400" />
-              <span>Description</span>
-            </label>
-            <textarea
-              rows={3}
-              placeholder="Provide background context, requirements or acceptance criteria..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none leading-relaxed"
-            />
-          </div>
-
-          {/* Grid: Assignee & Column Status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Assignee */}
+            {/* Title */}
             <div>
-              <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                <User className="w-3.5 h-3.5 text-slate-400" />
-                <span>Assignee <span className="text-rose-500">*</span></span>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                Task Title <span className="text-rose-500">*</span>
               </label>
               <input
+                ref={titleInputRef}
                 type="text"
-                list="assignees-suggestions"
-                placeholder="e.g. Alex Rivera"
-                value={assignee}
-                onChange={(e) => setAssignee(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                placeholder="e.g. Implement user authentication"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium"
               />
-              <datalist id="assignees-suggestions">
-                {existingAssignees.map((name) => (
-                  <option key={name} value={name} />
-                ))}
-              </datalist>
-
-              {/* Quick suggestion chips */}
-              {existingAssignees.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                  <span className="text-[10px] text-slate-400">Recent:</span>
-                  {existingAssignees.slice(0, 4).map((name) => (
-                    <button
-                      key={name}
-                      type="button"
-                      onClick={() => setAssignee(name)}
-                      className="px-1.5 py-0.5 text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded transition-colors"
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
-            {/* Column / Status */}
+            {/* Description */}
             <div>
               <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                <span>Status Column</span>
+                <AlignLeft className="w-3.5 h-3.5 text-slate-400" />
+                <span>Description</span>
               </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
-              >
-                <option value="todo">To do</option>
-                <option value="in_progress">In progress</option>
-                <option value="done">Done</option>
-              </select>
+              <textarea
+                rows={3}
+                placeholder="Provide background context, requirements or acceptance criteria..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none leading-relaxed"
+              />
             </div>
-          </div>
 
-          {/* Due Date & Presets */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                <span>Due Date <span className="text-rose-500">*</span></span>
-              </label>
-              {/* Quick Date Presets */}
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setRelativeDueDate(0)}
-                  className="px-2 py-0.5 text-[10px] font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded transition-colors"
+            {/* Grid: Assignee & Column Status */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Assignee */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                  <User className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Assignee <span className="text-rose-500">*</span></span>
+                </label>
+                <input
+                  type="text"
+                  list="assignees-suggestions"
+                  placeholder="e.g. Alex Rivera"
+                  value={assignee}
+                  onChange={(e) => setAssignee(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                />
+                <datalist id="assignees-suggestions">
+                  {existingAssignees.map((name) => (
+                    <option key={name} value={name} />
+                  ))}
+                </datalist>
+
+                {/* Quick suggestion chips */}
+                {existingAssignees.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                    <span className="text-[10px] text-slate-400">Recent:</span>
+                    {existingAssignees.slice(0, 4).map((name) => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setAssignee(name)}
+                        className="px-1.5 py-0.5 text-[10px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded transition-colors"
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Column / Status */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Status Column</span>
+                </label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as TaskStatus)}
+                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
                 >
-                  Today
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRelativeDueDate(1)}
-                  className="px-2 py-0.5 text-[10px] font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded transition-colors"
-                >
-                  Tomorrow
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRelativeDueDate(7)}
-                  className="px-2 py-0.5 text-[10px] font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded transition-colors"
-                >
-                  +1 Week
-                </button>
+                  <option value="todo">To do</option>
+                  <option value="in_progress">In progress</option>
+                  <option value="done">Done</option>
+                </select>
               </div>
             </div>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-            />
+
+            {/* Due Date & Presets */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Due Date <span className="text-rose-500">*</span></span>
+                </label>
+                {/* Quick Date Presets */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setRelativeDueDate(0)}
+                    className="px-2 py-0.5 text-[10px] font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded transition-colors"
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRelativeDueDate(1)}
+                    className="px-2 py-0.5 text-[10px] font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded transition-colors"
+                  >
+                    Tomorrow
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRelativeDueDate(7)}
+                    className="px-2 py-0.5 text-[10px] font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded transition-colors"
+                  >
+                    +1 Week
+                  </button>
+                </div>
+              </div>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              />
+            </div>
           </div>
 
-          {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+          {/* Pinned Footer Actions */}
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40 shrink-0">
             <button
               type="button"
               onClick={onClose}
