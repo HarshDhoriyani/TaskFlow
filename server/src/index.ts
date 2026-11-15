@@ -158,7 +158,10 @@ app.post('/api/tasks/clear', (_req: Request, res: Response) => {
 });
 
 // Serve frontend static files if client/dist exists
-const clientDistPath = path.join(__dirname, '../../client/dist');
+const clientDistPath = fs.existsSync(path.join(__dirname, '../../client/dist'))
+  ? path.join(__dirname, '../../client/dist')
+  : path.join(process.cwd(), 'client/dist');
+
 if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
   app.get('*', (_req: Request, res: Response) => {
