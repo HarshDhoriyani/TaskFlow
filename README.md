@@ -167,33 +167,6 @@ Runs the Express server on port 5000, serving both the API and the compiled Reac
 
 ---
 
-## 🎥 2-Minute Screen Recording Walkthrough Script
-
-If you are submitting a 2-minute video walkthrough, here is an easy step-by-step checklist to cover every criterion:
-
-1. **Overview (0:00 - 0:20)**:
-   - Introduce TaskFlow: three columns (*To do*, *In progress*, *Done*), stats counter, and team assignees.
-   - Point out the **Overdue Task highlight** on the past-due task (red alert badge + icon).
-2. **Move Tasks (0:20 - 0:40)**:
-   - Drag a task from *To do* to *In progress*.
-   - Use the quick 1-click **"→ Done"** button to show accessible/mobile movement.
-   - Show how the Stats counter updates in real time.
-3. **Search & Filters (0:40 - 1:05)**:
-   - Type a keyword (e.g. *"OAuth"*) in the search bar — show highlighted matched text in the title.
-   - Filter by assignee (e.g. *"Marcus Chen"*).
-   - Click the **"Overdue"** stats card to isolate only overdue tasks.
-   - Click **"Clear Filters"** to restore the full view.
-4. **Create, Edit & Delete (1:05 - 1:35)**:
-   - Click **"+ New Task"**, fill in title, description, assignee, and set due date to yesterday — demonstrate how it immediately shows the overdue warning!
-   - Edit the task, update status to *Done* — show how the overdue alert disappears because it is completed.
-   - Delete the task with the confirmation dialog.
-5. **Persistence & Mobile Responsiveness (1:35 - 2:00)**:
-   - Reload the browser page (`F5`) to demonstrate that **all tasks remain intact**!
-   - Open Chrome DevTools (`Ctrl+Shift+M`) to switch to Mobile View (e.g., iPhone 14 / Pixel).
-   - Show the **Mobile Column Tabs** (*To do*, *In progress*, *Done*) and smooth mobile card buttons.
-   - Toggle Dark/Light mode.
-
----
 
 ## 📂 Project Structure
 
