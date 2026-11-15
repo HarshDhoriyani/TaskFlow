@@ -232,7 +232,6 @@ Anatahq Intern/
 │   ├── package.json             # Backend dependencies
 │   └── tsconfig.json            # Server TypeScript config
 ├── .gitignore                   # Git ignore patterns
-├── netlify.toml                 # Netlify deployment configuration
 ├── render.yaml                  # Render fullstack blueprint
 ├── vercel.json                  # Vercel deployment configuration
 ├── package.json                 # Monorepo workspaces & root scripts
