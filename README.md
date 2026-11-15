@@ -8,7 +8,18 @@
 
 A clean, responsive team task board web application designed for agile teams to plan, organize, and track work across customizable workflow stages.
 
-Built with **React**, **TypeScript**, **Tailwind CSS**, and an optional **Node.js/Express** backend with seamless **dual-mode persistence** (Express REST API with automatic `localStorage` offline fallback).
+Built with **React**, **TypeScript**, **Tailwind CSS**, and a **Node.js/Express** backend with seamless **dual-mode persistence** (Express REST API with automatic `localStorage` offline fallback).
+
+---
+
+## 🌐 Live Deployments
+
+| Platform | Deployment Type | Live URL |
+| :--- | :--- | :--- |
+| **Vercel** | Production Frontend (Instant CDN + API Proxy) | **[https://taskflow-team-board.vercel.app](https://taskflow-team-board.vercel.app/)** |
+| **Render** | Full-Stack Web Service (Express REST API + Frontend) | **[https://taskflow-l4p3.onrender.com](https://taskflow-l4p3.onrender.com/)** |
+
+> Both deployments are live and synchronized to the same persistent backend!
 
 ---
 
@@ -127,25 +138,16 @@ Runs the Express server on port 5000, serving both the API and the compiled Reac
 
 ## 🌐 Deploy to Cloud Providers
 
-### 1. Vercel (Frontend Static)
-1. Import this repository in [Vercel](https://vercel.com).
-2. Root directory: `./`
-3. Framework Preset: `Vite`
-4. Build command: `npm run build --workspace=client`
-5. Output directory: `client/dist`
-*(A `vercel.json` file is already included)*
+### 1. Vercel (Frontend & CDN)
+- **Live URL:** [https://taskflow-team-board.vercel.app](https://taskflow-team-board.vercel.app/)
+- Configured with `vercel.json` for automatic proxying of `/api/*` requests to the Render backend.
 
-### 2. Netlify
-1. Connect repository in [Netlify](https://netlify.com).
-2. Build command: `npm run build --workspace=client`
-3. Publish directory: `client/dist`
-*(A `netlify.toml` file is already included)*
+### 2. Render (Full-Stack Backend Service)
+- **Live URL:** [https://taskflow-l4p3.onrender.com](https://taskflow-l4p3.onrender.com/)
+- Configured with `render.yaml` for automatic full-stack builds (`npm install && npm run build` -> `npm start`).
 
-### 3. Render (Full-Stack Web Service)
-1. Create a **Web Service** on [Render](https://render.com).
-2. Build Command: `npm install && npm run build`
-3. Start Command: `npm start`
-*(A `render.yaml` blueprint is already included)*
+### 3. Netlify (Alternative Static Host)
+- Fully compatible via the included `netlify.toml` build configuration.
 
 ---
 
