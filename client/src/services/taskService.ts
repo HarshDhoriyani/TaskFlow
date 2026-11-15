@@ -22,8 +22,17 @@ class TaskService {
   async checkBackend(): Promise<boolean> {
     try {
       const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(1500) });
-      this.isBackendAvailable = res.ok;
-      return res.ok;
+      const contentType = res.headers.get('content-type') || '';
+      
+      // If deployed statically on Vercel without a backend, rewrites might return HTML or 404
+      if (!res.ok || !contentType.includes('application/json')) {
+        this.isBackendAvailable = false;
+        return false;
+      }
+
+      const data = await res.json();
+      this.isBackendAvailable = data?.status === 'ok';
+      return this.isBackendAvailable;
     } catch {
       this.isBackendAvailable = false;
       return false;
@@ -40,7 +49,8 @@ class TaskService {
     if (this.isBackendAvailable) {
       try {
         const res = await fetch(`${API_BASE}/tasks`);
-        if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && contentType.includes('application/json')) {
           const data = await res.json();
           localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(data));
           return data;
@@ -83,7 +93,8 @@ class TaskService {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newTask),
         });
-        if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && contentType.includes('application/json')) {
           const serverTask = await res.json();
           this.saveTaskLocally(serverTask);
           return serverTask;
@@ -117,7 +128,8 @@ class TaskService {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedTask),
         });
-        if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (res.ok && contentType.includes('application/json')) {
           const serverTask = await res.json();
           this.updateTaskLocally(serverTask);
           return serverTask;
