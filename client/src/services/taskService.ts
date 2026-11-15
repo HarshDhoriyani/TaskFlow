@@ -1,7 +1,7 @@
 import { Task, TaskFormData, TaskStatus } from '../types/task';
 
 const TASKS_STORAGE_KEY = 'taskflow_tasks_v2';
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 class TaskService {
   private isBackendAvailable: boolean | null = null;
@@ -21,10 +21,10 @@ class TaskService {
    */
   async checkBackend(): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(1500) });
+      const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(8000) });
       const contentType = res.headers.get('content-type') || '';
       
-      // If deployed statically on Vercel without a backend, rewrites might return HTML or 404
+      // If deployed statically without a backend, rewrites might return HTML or 404
       if (!res.ok || !contentType.includes('application/json')) {
         this.isBackendAvailable = false;
         return false;
